@@ -1,0 +1,424 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - v*
+
+permissions: write-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ matrix.runner }} - ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            target: aarch64-apple-darwin
+            friendly_id: macos-arm64
+          - runner: macos-14
+            target: x86_64-apple-darwin
+            friendly_id: macos-x64
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            friendly_id: linux-x64-gnu
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            friendly_id: linux-arm64-gnu
+          - runner: windows-latest
+            target: x86_64-pc-windows-msvc
+            friendly_id: windows-x64
+          - runner: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            friendly_id: windows-arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Rust Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1.17.0
+        with:
+          target: ${{ matrix.target }}
+          cache: false
+
+      - name: Exclude build dirs from Windows Defender
+        if: ${{ startsWith(matrix.runner, 'windows') }}
+        shell: powershell
+        run: |
+          Add-MpPreference -ExclusionPath "${{ github.workspace }}" -ErrorAction SilentlyContinue
+          Add-MpPreference -ExclusionPath "$env:USERPROFILE\.cargo" -ErrorAction SilentlyContinue
+          Add-MpPreference -ExclusionProcess "rustc.exe" -ErrorAction SilentlyContinue
+          Add-MpPreference -ExclusionProcess "link.exe" -ErrorAction SilentlyContinue
+
+      - name: Cargo build (release)
+        run: |
+          cargo build --target ${{ matrix.target }} --release --locked --bin ${{ github.event.repository.name }}
+
+      - name: Stage Artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest="dist/${{ matrix.target }}"
+          mkdir -p "$dest"
+          bin_dir="target/${{ matrix.target }}/release"
+          bin="${{ github.event.repository.name }}"
+          if [[ "${{ matrix.runner }}" == windows* ]]; then
+            bin="${bin}.exe"
+          fi
+          # Copy only the binary to avoid uploading sidecar files like *.d
+          cp "${bin_dir}/${bin}" "${dest}/${bin}"
+
+      - name: Create .zip (Windows)
+        if: ${{ startsWith(matrix.runner, 'windows') }}
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $dest = "dist/${{ matrix.target }}"
+          $version = "${env:GITHUB_REF_NAME}".Substring(1)
+          $bin = "${{ github.event.repository.name }}.exe"
+          $zip = "${{ github.event.repository.name }}-v$version-${{ matrix.friendly_id }}.zip"
+          Compress-Archive -Path "$dest\$bin" -DestinationPath "$dest\$zip" -Force
+
+      - name: Create .tar.gz (all platforms)
+        if: ${{ !startsWith(matrix.runner, 'windows') }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest="dist/${{ matrix.target }}"
+          version="${GITHUB_REF_NAME#v}"
+          bin="${{ github.event.repository.name }}"
+          archive="${{ github.event.repository.name }}-v${version}-${{ matrix.friendly_id }}.tar.gz"
+          tar -C "$dest" -czf "$dest/${archive}" "${bin}" "${bin}.exe" 2>/dev/null || \
+          tar -C "$dest" -czf "$dest/${archive}" "${bin}"
+          rm -f "$dest/${bin}" "$dest/${bin}.exe" || true
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.friendly_id }}
+          path: dist/${{ matrix.target }}/*
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
+          overwrite: true
+
+  package:
+    name: Package Crate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Rust Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1.17.0
+        with:
+          cache: false
+
+      - name: Derive version from tag and update Cargo.toml
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          echo "Version from tag: ${VERSION}"
+          cargo install cargo-edit --locked
+          cargo set-version "${VERSION}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Build crate package (.crate)
+        run: |
+          cargo package --locked --allow-dirty
+
+      - name: Publish to crates.io
+        continue-on-error: true
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          cargo publish --allow-dirty
+
+      - name: Upload .crate artifact
+        uses: actions/upload-artifact@v7
+        with:
+          path: target/package/*.crate
+          name: crate
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 6
+          overwrite: true
+
+  release:
+    name: Create GitHub Release
+    needs:
+      - build
+      - package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: List downloaded artifacts
+        run: |
+          echo "Downloaded artifact contents:"
+          ls -alR dist
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            dist/**/*
+
+  publish-npm:
+    name: Publish to npm - ${{ matrix.scope && format('{0}/', matrix.scope) || '' }}${{ matrix.name }}
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "${{ github.event.repository.name }}"
+            scope: "@mai0313"
+          - name: rusttemp
+            scope: "@mai0313"
+          - name: "${{ github.event.repository.name }}"
+            scope: ""
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Publishing version: ${VERSION}"
+
+      - name: Download and extract build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: cli/nodejs/binaries/temp
+          merge-multiple: true
+
+      - name: Extract binaries from archives
+        working-directory: cli/nodejs/binaries/temp
+        run: |
+          for archive in *; do
+            platform=$(echo "$archive" | sed -E 's/^${{ github.event.repository.name }}-v[0-9]+\.[0-9]+\.[0-9]+-//')
+            platform="${platform%.tar.gz}"
+            platform="${platform%.zip}"
+
+            echo "Extracting $archive to $platform/"
+            mkdir -p "../$platform"
+
+            case "$archive" in
+              *.tar.gz) tar -xzf "$archive" -C "../$platform" ;;
+              *.zip)    unzip -q "$archive" -d "../$platform" ;;
+            esac
+          done
+
+      - name: Cleanup and verify
+        run: |
+          rm -rf cli/nodejs/binaries/temp
+          echo "Extracted binaries:" && ls -lhR cli/nodejs/binaries/
+
+      - name: Update package.json version and name
+        working-directory: cli/nodejs
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          PACKAGE_NAME="${{ matrix.name }}"
+          SCOPE="${{ matrix.scope }}"
+
+          # Update version
+          npm version ${VERSION} --no-git-tag-version
+
+          # Update package name with scope if present
+          if [ -n "${SCOPE}" ]; then
+            FULL_NAME="${SCOPE}/${PACKAGE_NAME}"
+          else
+            FULL_NAME="${PACKAGE_NAME}"
+          fi
+
+          # Use jq to update package name
+          cat package.json | jq --arg name "${FULL_NAME}" '.name = $name' > package.json.tmp
+          mv package.json.tmp package.json
+
+      - name: Copy README for npm
+        run: |
+          cp README.md cli/nodejs/README.md
+          cp README.zh-CN.md cli/nodejs/README.zh-CN.md
+          cp README.zh-TW.md cli/nodejs/README.zh-TW.md
+
+      - name: Publish to npm
+        working-directory: cli/nodejs
+        run: |
+          PKG=$(node -p "require('./package.json').name")
+          VER=$(node -p "require('./package.json').version")
+          if npm view "${PKG}@${VER}" version >/dev/null 2>&1; then
+            echo "${PKG}@${VER} is already on the registry, nothing to do."
+            exit 0
+          fi
+          # A trusted-publisher mismatch surfaces as ENEEDAUTH, see npm/cli#9088
+          npm publish --access public || {
+            echo "::error::npm publish failed for ${PKG}. If this is ENEEDAUTH, check the trusted publisher at https://www.npmjs.com/package/${PKG}/access"
+            exit 1
+          }
+
+      - name: Verify publication
+        working-directory: cli/nodejs
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          PACKAGE_NAME="${{ matrix.name }}"
+          SCOPE="${{ matrix.scope }}"
+
+          if [ -n "${SCOPE}" ]; then
+            FULL_NAME="${SCOPE}/${PACKAGE_NAME}"
+          else
+            FULL_NAME="${PACKAGE_NAME}"
+          fi
+
+          echo "Waiting for npm registry to update..."
+          sleep 10
+
+          # Check if version is available
+          PUBLISHED_VERSION=$(npm view ${FULL_NAME}@${VERSION} version 2>/dev/null || echo "")
+
+          if [ "${PUBLISHED_VERSION}" = "${VERSION}" ]; then
+            echo "✓ Successfully published ${FULL_NAME}@${VERSION}"
+            echo "Install with: npm install -g ${FULL_NAME}"
+          else
+            echo "Warning: Could not immediately verify publication"
+            echo "Please check: https://www.npmjs.com/package/${FULL_NAME}"
+          fi
+
+  publish-pypi:
+    name: Publish to pypi
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Publishing version: ${VERSION}"
+
+      - name: Download and extract build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: cli/python/src/${{ github.event.repository.name }}/binaries/temp
+          merge-multiple: true
+
+      - name: Extract binaries from archives
+        working-directory: cli/python/src/${{ github.event.repository.name }}/binaries/temp
+        run: |
+          for archive in *; do
+            platform=$(echo "$archive" | sed -E 's/^${{ github.event.repository.name }}-v[0-9]+\.[0-9]+\.[0-9]+-//')
+            platform="${platform%.tar.gz}"
+            platform="${platform%.zip}"
+
+            echo "Extracting $archive to $platform/"
+            mkdir -p "../$platform"
+
+            case "$archive" in
+              *.tar.gz) tar -xzf "$archive" -C "../$platform" ;;
+              *.zip)    unzip -q "$archive" -d "../$platform" ;;
+            esac
+          done
+
+      - name: Cleanup and verify
+        run: |
+          rm -rf cli/python/src/${{ github.event.repository.name }}/binaries/temp
+          echo "Extracted binaries:" && ls -lhR cli/python/src/${{ github.event.repository.name }}/binaries/
+
+      - name: Update pyproject.toml version
+        working-directory: cli/python
+        run: |
+          uv version ${{ steps.version.outputs.VERSION }} --frozen
+
+      - name: Copy README for PyPI
+        run: |
+          cp README.md cli/python/README.md
+          cp README.zh-CN.md cli/python/README.zh-CN.md
+          cp README.zh-TW.md cli/python/README.zh-TW.md
+
+      - name: Build package
+        working-directory: cli/python
+        run: |
+          uv build
+
+      - name: Publish to PyPI
+        working-directory: cli/python
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.UV_PUBLISH_TOKEN }}
+        run: |
+          uv publish --check-url https://pypi.org/simple/
+
+      - name: Verify publication
+        working-directory: cli/python
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          PACKAGE_NAME="${{ github.event.repository.name }}"
+
+          echo "Waiting for PyPI registry to update..."
+          sleep 15
+
+          # Check if version is available
+          PUBLISHED_VERSION=$(pip index versions ${PACKAGE_NAME} 2>/dev/null | grep "Available versions:" | grep -o "${VERSION}" || echo "")
+
+          if [ "${PUBLISHED_VERSION}" = "${VERSION}" ]; then
+            echo "✓ Successfully published ${PACKAGE_NAME}==${VERSION}"
+            echo "Install with: pip install ${PACKAGE_NAME}"
+          else
+            echo "Warning: Could not immediately verify publication"
+            echo "Please check: https://pypi.org/project/${PACKAGE_NAME}/"
+          fi

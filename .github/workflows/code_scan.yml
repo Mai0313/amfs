@@ -1,0 +1,54 @@
+name: Code Scanning
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions: write-all
+
+jobs:
+  secret-scanning:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: GitLeaks Scanning
+        uses: gitleaks/gitleaks-action@v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trufflehog Scanning
+        uses: trufflesecurity/trufflehog@v3.96.0
+        with:
+          extra_args: --results=verified,unknown
+
+  codeql-scanning:
+    name: CodeQL Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: CodeQL Initialize
+        uses: github/codeql-action/init@v4.37.3
+        with:
+          languages: rust
+
+      - name: CodeQL Analyze
+        uses: github/codeql-action/analyze@v4.37.3

@@ -1,0 +1,25 @@
+name: Pull Request Labeler
+
+on:
+  pull_request:
+
+permissions: write-all
+
+jobs:
+  labeler:
+    name: Labeler
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Labeler
+        id: labeler
+        uses: actions/labeler@v7
+        with:
+          sync-labels: true
+          configuration-path: .github/labeler.yml
