@@ -1,20 +1,23 @@
 [package]
-name = "rust_template"
+name = "amfs"
 version = "0.0.0"
 edition = "2024"
 rust-version = "1.95"
 authors = ["Wei Lee <mai@mai0313.com>"]
-description = "A production-ready Rust project template with CI/CD, Docker, and examples."
+description = "Agent Memory File System - a local-first memory store for AI agents, with semantic search."
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/Mai0313/rust_template"
-repository = "https://github.com/Mai0313/rust_template"
+homepage = "https://github.com/Mai0313/amfs"
+repository = "https://github.com/Mai0313/amfs"
+keywords = ["agent", "memory", "embedding", "search", "cli"]
+categories = ["command-line-utilities"]
 
 [[bin]]
-name = "rust_template"
+name = "amfs"
 path = "src/main.rs"
 
 [dependencies]
+clap = { version = "4.6.4", features = ["derive"] }
 
 [profile.release]
 lto = "thin"

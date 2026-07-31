@@ -6,7 +6,7 @@
 
 #[test]
 fn version_info_is_populated() {
-    assert!(!rust_template::version().is_empty());
-    assert!(!rust_template::rust_version().is_empty());
-    assert!(!rust_template::cargo_version().is_empty());
+    assert!(!amfs::version().is_empty());
+    assert!(!amfs::rust_version().is_empty());
+    assert!(!amfs::cargo_version().is_empty());
 }
