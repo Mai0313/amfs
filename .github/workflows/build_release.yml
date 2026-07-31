@@ -11,6 +11,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
+# The distribution names differ per registry: `amfs` was already taken on PyPI,
+# so only that one falls back to the long form. The repository name is not used
+# as a package name anywhere, keep it that way.
+env:
+  BIN_NAME: amfs
+  PYPI_NAME: agent-memory-fs
+
 jobs:
   build:
     name: ${{ matrix.runner }} - ${{ matrix.target }}
@@ -65,7 +72,7 @@ jobs:
 
       - name: Cargo build (release)
         run: |
-          cargo build --target ${{ matrix.target }} --release --locked --bin ${{ github.event.repository.name }}
+          cargo build --target ${{ matrix.target }} --release --locked --bin ${{ env.BIN_NAME }}
 
       - name: Stage Artifact
         shell: bash
@@ -74,7 +81,7 @@ jobs:
           dest="dist/${{ matrix.target }}"
           mkdir -p "$dest"
           bin_dir="target/${{ matrix.target }}/release"
-          bin="${{ github.event.repository.name }}"
+          bin="${{ env.BIN_NAME }}"
           if [[ "${{ matrix.runner }}" == windows* ]]; then
             bin="${bin}.exe"
           fi
@@ -88,8 +95,8 @@ jobs:
           $ErrorActionPreference = "Stop"
           $dest = "dist/${{ matrix.target }}"
           $version = "${env:GITHUB_REF_NAME}".Substring(1)
-          $bin = "${{ github.event.repository.name }}.exe"
-          $zip = "${{ github.event.repository.name }}-v$version-${{ matrix.friendly_id }}.zip"
+          $bin = "${{ env.BIN_NAME }}.exe"
+          $zip = "${{ env.BIN_NAME }}-v$version-${{ matrix.friendly_id }}.zip"
           Compress-Archive -Path "$dest\$bin" -DestinationPath "$dest\$zip" -Force
 
       - name: Create .tar.gz (all platforms)
@@ -99,8 +106,8 @@ jobs:
           set -euo pipefail
           dest="dist/${{ matrix.target }}"
           version="${GITHUB_REF_NAME#v}"
-          bin="${{ github.event.repository.name }}"
-          archive="${{ github.event.repository.name }}-v${version}-${{ matrix.friendly_id }}.tar.gz"
+          bin="${{ env.BIN_NAME }}"
+          archive="${{ env.BIN_NAME }}-v${version}-${{ matrix.friendly_id }}.tar.gz"
           tar -C "$dest" -czf "$dest/${archive}" "${bin}" "${bin}.exe" 2>/dev/null || \
           tar -C "$dest" -czf "$dest/${archive}" "${bin}"
           rm -f "$dest/${bin}" "$dest/${bin}.exe" || true
@@ -197,15 +204,14 @@ jobs:
       contents: read
       id-token: write
 
+    # The `env` context is not available inside `strategy`, so these are literals.
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: "${{ github.event.repository.name }}"
+          - name: amfs
             scope: "@mai0313"
-          - name: rusttemp
-            scope: "@mai0313"
-          - name: "${{ github.event.repository.name }}"
+          - name: amfs
             scope: ""
 
     steps:
@@ -237,7 +243,7 @@ jobs:
         working-directory: cli/nodejs/binaries/temp
         run: |
           for archive in *; do
-            platform=$(echo "$archive" | sed -E 's/^${{ github.event.repository.name }}-v[0-9]+\.[0-9]+\.[0-9]+-//')
+            platform=$(echo "$archive" | sed -E 's/^${{ env.BIN_NAME }}-v[0-9]+\.[0-9]+\.[0-9]+-//')
             platform="${platform%.tar.gz}"
             platform="${platform%.zip}"
 
@@ -355,14 +361,14 @@ jobs:
       - name: Download and extract build artifacts
         uses: actions/download-artifact@v8
         with:
-          path: cli/python/src/${{ github.event.repository.name }}/binaries/temp
+          path: cli/python/src/${{ env.BIN_NAME }}/binaries/temp
           merge-multiple: true
 
       - name: Extract binaries from archives
-        working-directory: cli/python/src/${{ github.event.repository.name }}/binaries/temp
+        working-directory: cli/python/src/${{ env.BIN_NAME }}/binaries/temp
         run: |
           for archive in *; do
-            platform=$(echo "$archive" | sed -E 's/^${{ github.event.repository.name }}-v[0-9]+\.[0-9]+\.[0-9]+-//')
+            platform=$(echo "$archive" | sed -E 's/^${{ env.BIN_NAME }}-v[0-9]+\.[0-9]+\.[0-9]+-//')
             platform="${platform%.tar.gz}"
             platform="${platform%.zip}"
 
@@ -377,8 +383,8 @@ jobs:
 
       - name: Cleanup and verify
         run: |
-          rm -rf cli/python/src/${{ github.event.repository.name }}/binaries/temp
-          echo "Extracted binaries:" && ls -lhR cli/python/src/${{ github.event.repository.name }}/binaries/
+          rm -rf cli/python/src/${{ env.BIN_NAME }}/binaries/temp
+          echo "Extracted binaries:" && ls -lhR cli/python/src/${{ env.BIN_NAME }}/binaries/
 
       - name: Update pyproject.toml version
         working-directory: cli/python
@@ -407,7 +413,7 @@ jobs:
         working-directory: cli/python
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
-          PACKAGE_NAME="${{ github.event.repository.name }}"
+          PACKAGE_NAME="${{ env.PYPI_NAME }}"
 
           echo "Waiting for PyPI registry to update..."
           sleep 15

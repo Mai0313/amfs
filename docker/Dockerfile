@@ -1,7 +1,7 @@
 FROM rust:1.97.1-bookworm AS builder
 
 LABEL maintainer="Wei Lee <mai@mai0313.com>" \
-    org.label-schema.name="rust_template" \
+    org.label-schema.name="amfs" \
     org.label-schema.vendor="Wei Lee" \
     org.label-schema.schema-version="1.0" \
     com.centurylinklabs.watchtower.stop-signal="SIGINT"
@@ -18,12 +18,12 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/app/target \
     cargo build --release --locked \
-    && cp target/release/rust_template /usr/local/bin/rust_template
+    && cp target/release/amfs /usr/local/bin/amfs
 
 ########################################################################################
 
 FROM ubuntu:26.04 AS prod
-COPY --from=builder /usr/local/bin/rust_template /usr/local/bin/rust_template
+COPY --from=builder /usr/local/bin/amfs /usr/local/bin/amfs
 
 # Run as a non-root user so bind-mounted files are not root-owned on the host.
 # ubuntu:24.04+ ships a default `ubuntu` user at UID 1000; replace it with `app`.
@@ -31,4 +31,4 @@ RUN userdel --remove ubuntu \
     && groupadd --gid 1000 app \
     && useradd --create-home --uid 1000 --gid 1000 app
 USER app
-ENTRYPOINT ["rust_template"]
+ENTRYPOINT ["amfs"]

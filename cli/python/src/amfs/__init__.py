@@ -22,16 +22,16 @@ def get_platform_info():
     # Map to platform-specific directory and binary name
     platform_map = {
         "darwin": {
-            "x64": {"dir": "macos-x64", "binary": "rust_template"},
-            "arm64": {"dir": "macos-arm64", "binary": "rust_template"},
+            "x64": {"dir": "macos-x64", "binary": "amfs"},
+            "arm64": {"dir": "macos-arm64", "binary": "amfs"},
         },
         "linux": {
-            "x64": {"dir": "linux-x64-gnu", "binary": "rust_template"},
-            "arm64": {"dir": "linux-arm64-gnu", "binary": "rust_template"},
+            "x64": {"dir": "linux-x64-gnu", "binary": "amfs"},
+            "arm64": {"dir": "linux-arm64-gnu", "binary": "amfs"},
         },
         "windows": {
-            "x64": {"dir": "windows-x64", "binary": "rust_template.exe"},
-            "arm64": {"dir": "windows-arm64", "binary": "rust_template.exe"},
+            "x64": {"dir": "windows-x64", "binary": "amfs.exe"},
+            "arm64": {"dir": "windows-arm64", "binary": "amfs.exe"},
         },
     }
 
