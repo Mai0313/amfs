@@ -22,14 +22,16 @@ The two wrappers under `cli/` contain no logic. They locate a prebuilt binary un
 
 This is the single easiest thing to get wrong:
 
-| Target           | Name                       |
-| ---------------- | -------------------------- |
-| binary / command | `amfs`                     |
-| crates.io        | `amfs`                     |
-| npm              | `amfs` and `@mai0313/amfs` |
-| PyPI             | `agent-memory-fs`          |
+| Target           | Name              |
+| ---------------- | ----------------- |
+| binary / command | `amfs`            |
+| crates.io        | `amfs`            |
+| npm              | `@mai0313/amfs`   |
+| PyPI             | `agent-memory-fs` |
 
-`amfs` was already taken on PyPI by an unrelated project, so only the Python distribution uses the long form. The command it installs is still `amfs`, which is why `cli/python/pyproject.toml` needs `[tool.uv.build-backend] module-name = "amfs"`. Without it the backend derives the module name from the distribution name and the build fails.
+Only crates.io could take the short name. `amfs` was already registered on PyPI by an unrelated project, and npm refuses the unscoped `amfs` outright because its typosquatting check finds it too similar to `memfs`, `fs`, `ms`, and friends — that one is a registry policy, not a name that might free up later.
+
+The command both wrappers install is still `amfs`, which is why `cli/python/pyproject.toml` needs `[tool.uv.build-backend] module-name = "amfs"`. Without it the backend derives the module name from the distribution name and the build fails.
 
 `build_release.yml` declares `BIN_NAME` and `PYPI_NAME` at the workflow level. Use those instead of `github.event.repository.name`; the repository name is deliberately not a package name. The `env` context is **not** available inside `strategy.matrix`, so the npm package matrix spells the names out as literals.
 

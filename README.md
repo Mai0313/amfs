@@ -4,8 +4,8 @@
 
 [![Crates.io](https://img.shields.io/crates/v/amfs?logo=rust&style=flat-square&color=E05D44)](https://crates.io/crates/amfs)
 [![Crates.io Downloads](https://img.shields.io/crates/d/amfs?logo=rust&style=flat-square)](https://crates.io/crates/amfs)
-[![npm version](https://img.shields.io/npm/v/amfs?logo=npm&style=flat-square&color=CB3837)](https://www.npmjs.com/package/amfs)
-[![npm downloads](https://img.shields.io/npm/dt/amfs?logo=npm&style=flat-square)](https://www.npmjs.com/package/amfs)
+[![npm version](https://img.shields.io/npm/v/@mai0313/amfs?logo=npm&style=flat-square&color=CB3837)](https://www.npmjs.com/package/@mai0313/amfs)
+[![npm downloads](https://img.shields.io/npm/dt/@mai0313/amfs?logo=npm&style=flat-square)](https://www.npmjs.com/package/@mai0313/amfs)
 [![PyPI version](https://img.shields.io/pypi/v/agent-memory-fs?logo=python&style=flat-square&color=3776AB)](https://pypi.org/project/agent-memory-fs/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/agent-memory-fs?logo=python&style=flat-square)](https://pypi.org/project/agent-memory-fs/)
 [![rust](https://img.shields.io/badge/Rust-stable-orange?logo=rust&logoColor=white&style=flat-square)](https://www.rust-lang.org/)
@@ -30,7 +30,7 @@ A single self-contained binary, distributed through whichever package manager yo
 
 ```bash
 cargo install amfs                    # Rust
-npm install -g amfs                   # Node.js
+npm install -g @mai0313/amfs          # Node.js
 uv tool install agent-memory-fs       # Python
 ```
 
@@ -40,7 +40,7 @@ Or run it without installing:
 uvx --from agent-memory-fs amfs --help
 ```
 
-> **Note on the PyPI name.** The `amfs` name was already taken on PyPI by an unrelated project, so the Python distribution is published as `agent-memory-fs`. The command it installs is still `amfs`. Do not run `uvx amfs` — that resolves to somebody else's package.
+> **The package name differs per registry, the command does not.** Whichever one you install, you get `amfs`. Only crates.io could take the short name: `amfs` was already registered on PyPI by an unrelated project, and npm rejects the unscoped `amfs` as too similar to existing package names. In particular, do not run `uvx amfs` — that resolves to somebody else's package.
 
 Prebuilt binaries for macOS, Linux, and Windows are also attached to every [release](https://github.com/Mai0313/amfs/releases).
 
@@ -126,7 +126,7 @@ Asset naming:
 - `amfs-v<version>-<platform>.tar.gz` (all platforms)
 - `amfs-v<version>-<platform>.zip` (Windows additionally)
 
-The three distribution names are declared once, at the top of `build_release.yml`.
+Distribution names are pinned in `build_release.yml`, not derived from the repository name.
 
 ## 🔁 CI/CD Workflows
 

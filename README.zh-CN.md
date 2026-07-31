@@ -4,8 +4,8 @@
 
 [![Crates.io](https://img.shields.io/crates/v/amfs?logo=rust&style=flat-square&color=E05D44)](https://crates.io/crates/amfs)
 [![Crates.io Downloads](https://img.shields.io/crates/d/amfs?logo=rust&style=flat-square)](https://crates.io/crates/amfs)
-[![npm version](https://img.shields.io/npm/v/amfs?logo=npm&style=flat-square&color=CB3837)](https://www.npmjs.com/package/amfs)
-[![npm downloads](https://img.shields.io/npm/dt/amfs?logo=npm&style=flat-square)](https://www.npmjs.com/package/amfs)
+[![npm version](https://img.shields.io/npm/v/@mai0313/amfs?logo=npm&style=flat-square&color=CB3837)](https://www.npmjs.com/package/@mai0313/amfs)
+[![npm downloads](https://img.shields.io/npm/dt/@mai0313/amfs?logo=npm&style=flat-square)](https://www.npmjs.com/package/@mai0313/amfs)
 [![PyPI version](https://img.shields.io/pypi/v/agent-memory-fs?logo=python&style=flat-square&color=3776AB)](https://pypi.org/project/agent-memory-fs/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/agent-memory-fs?logo=python&style=flat-square)](https://pypi.org/project/agent-memory-fs/)
 [![rust](https://img.shields.io/badge/Rust-stable-orange?logo=rust&logoColor=white&style=flat-square)](https://www.rust-lang.org/)
@@ -30,7 +30,7 @@
 
 ```bash
 cargo install amfs                    # Rust
-npm install -g amfs                   # Node.js
+npm install -g @mai0313/amfs          # Node.js
 uv tool install agent-memory-fs       # Python
 ```
 
@@ -40,7 +40,7 @@ uv tool install agent-memory-fs       # Python
 uvx --from agent-memory-fs amfs --help
 ```
 
-> **PyPI 名称的注意事项.** `amfs` 在 PyPI 上已经被另一个不相干的项目占用, 所以 Python 发行版的名字是 `agent-memory-fs`, 但装好之后的命令仍然是 `amfs`. 请不要执行 `uvx amfs`, 那会装到别人的包.
+> **包名称因 registry 而异, 但命令都一样.** 不管从哪里装, 拿到的命令都是 `amfs`. 只有 crates.io 能用短名字: `amfs` 在 PyPI 上已经被另一个不相干的项目注册, 而 npm 认为未加 scope 的 `amfs` 跟现有包名太相似, 直接拒绝. 特别注意不要执行 `uvx amfs`, 那会装到别人的包.
 
 macOS, Linux 与 Windows 的预编译 binary 也附在每个 [release](https://github.com/Mai0313/amfs/releases) 里.
 
@@ -126,7 +126,7 @@ docker run --rm amfs:latest --help
 - `amfs-v<version>-<platform>.tar.gz` (所有平台)
 - `amfs-v<version>-<platform>.zip` (Windows 另附)
 
-三个 registry 的发行名称统一声明在 `build_release.yml` 的开头.
+各 registry 的发行名称写死在 `build_release.yml` 里, 不是从 repo 名推导出来的.
 
 ## 🔁 CI/CD
 
