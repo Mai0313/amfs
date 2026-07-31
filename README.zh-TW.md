@@ -1,183 +1,160 @@
 <div align="center" markdown="1">
 
-# Rust 專案模板
+# AMFS — Agent Memory File System
 
-[![Crates.io](https://img.shields.io/crates/v/rust_template?logo=rust&style=flat-square&color=E05D44)](https://crates.io/crates/rust_template)
-[![Crates.io Downloads](https://img.shields.io/crates/d/rust_template?logo=rust&style=flat-square)](https://crates.io/crates/rust_template)
-[![npm version](https://img.shields.io/npm/v/rust_template?logo=npm&style=flat-square&color=CB3837)](https://www.npmjs.com/package/rust_template)
-[![npm downloads](https://img.shields.io/npm/dt/rust_template?logo=npm&style=flat-square)](https://www.npmjs.com/package/rust_template)
-[![PyPI version](https://img.shields.io/pypi/v/rust_template?logo=python&style=flat-square&color=3776AB)](https://pypi.org/project/rust_template/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/rust_template?logo=python&style=flat-square)](https://pypi.org/project/rust_template/)
+[![Crates.io](https://img.shields.io/crates/v/amfs?logo=rust&style=flat-square&color=E05D44)](https://crates.io/crates/amfs)
+[![Crates.io Downloads](https://img.shields.io/crates/d/amfs?logo=rust&style=flat-square)](https://crates.io/crates/amfs)
+[![npm version](https://img.shields.io/npm/v/amfs?logo=npm&style=flat-square&color=CB3837)](https://www.npmjs.com/package/amfs)
+[![npm downloads](https://img.shields.io/npm/dt/amfs?logo=npm&style=flat-square)](https://www.npmjs.com/package/amfs)
+[![PyPI version](https://img.shields.io/pypi/v/agent-memory-fs?logo=python&style=flat-square&color=3776AB)](https://pypi.org/project/agent-memory-fs/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/agent-memory-fs?logo=python&style=flat-square)](https://pypi.org/project/agent-memory-fs/)
 [![rust](https://img.shields.io/badge/Rust-stable-orange?logo=rust&logoColor=white&style=flat-square)](https://www.rust-lang.org/)
-[![tests](https://img.shields.io/github/actions/workflow/status/Mai0313/rust_template/test.yml?label=tests&logo=github&style=flat-square)](https://github.com/Mai0313/rust_template/actions/workflows/test.yml)
-[![code-quality](https://img.shields.io/github/actions/workflow/status/Mai0313/rust_template/code-quality-check.yml?label=code-quality&logo=github&style=flat-square)](https://github.com/Mai0313/rust_template/actions/workflows/code-quality-check.yml)
-[![license](https://img.shields.io/badge/License-MIT-green.svg?labelColor=gray&style=flat-square)](https://github.com/Mai0313/rust_template/tree/master?tab=License-1-ov-file)
-[![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/Mai0313/rust_template/pulls)
+[![tests](https://img.shields.io/github/actions/workflow/status/Mai0313/amfs/test.yml?label=tests&logo=github&style=flat-square)](https://github.com/Mai0313/amfs/actions/workflows/test.yml)
+[![code-quality](https://img.shields.io/github/actions/workflow/status/Mai0313/amfs/code-quality-check.yml?label=code-quality&logo=github&style=flat-square)](https://github.com/Mai0313/amfs/actions/workflows/code-quality-check.yml)
+[![license](https://img.shields.io/badge/License-MIT-green.svg?labelColor=gray&style=flat-square)](https://github.com/Mai0313/amfs/tree/main?tab=License-1-ov-file)
+[![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/Mai0313/amfs/pulls)
 
 </div>
 
-🚀 幫助 Rust 開發者「快速建立新專案」的模板。內建 Cargo 佈局、Docker 與完整 CI/CD 流程。
-
-點擊 [使用此模板](https://github.com/Mai0313/rust_template/generate) 後即可開始。
+🧠 完全跑在自己機器上的 AI agent 記憶儲存工具. 記下東西, 之後用語意找回來, 不必為每一筆記憶付錢給雲端服務.
 
 其他語言: [English](README.md) | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md)
 
-## 🎯 使用此模板
+## 🚧 目前狀態
 
-**重要提醒**：這是一個模板儲存庫。在將其用於您的專案之前，您必須：
+早期開發中. 下面列出的指令介面已經定案, 但底下的功能都還沒實作, 每個 subcommand 現在都會直接回報 not implemented. 儲存格式與 embedding 後端仍在設計, 在 `0.1.0` 之前都可能有破壞性變更.
 
-1. **重新命名所有出現的** `rust_template` 為您的專案名稱（整個程式碼庫）
-2. **更新詮釋資料**：修改 `Cargo.toml`、`cli/nodejs/package.json` 和 `cli/python/pyproject.toml`
-3. **更新作者資訊**：修改所有套件清單和 Dockerfile 中的作者資訊
-4. **更新儲存庫 URL**：修改 README 徽章、套件清單和 GitHub workflows 中的連結
-5. **重新命名 Python 套件目錄**：將 `cli/python/src/rust_template` 改為您的專案名稱
+## 📦 安裝
 
-詳細的逐步說明請參閱 [.github/copilot-instructions.md](.github/copilot-instructions.md#using-this-template-for-new-projects)。
-
-**設定後的快速驗證**：
+一個獨立的 binary, 從你手邊已經有的套件管理工具安裝即可.
 
 ```bash
-grep -r "rust_template" . --exclude-dir=target --exclude-dir=.git  # 應該只找到少量符合項目
-make fmt && cargo build && cargo test --all  # 驗證一切正常
+cargo install amfs                    # Rust
+npm install -g amfs                   # Node.js
+uv tool install agent-memory-fs       # Python
 ```
 
-## ✨ 重點特色
-
-- 現代 Cargo 結構：unit tests 放在 `src/` 內，integration tests 放在 `tests/`
-- 動態版本資訊，包含 git 詮釋資料（標籤、提交雜湊、建置工具）
-- clippy + rustfmt 品質把關
-- GitHub Actions：測試、品質、打包、Docker 推送、發布草稿、Rust 自動標籤、祕密掃描、語義化 PR、每週依賴更新
-- 多階段 Dockerfile，產出精簡執行映像
-
-## 🚀 快速開始
-
-**系統需求：**
-
-- Rust 1.85 或更高版本（使用 Edition 2024）
-- Docker（可選）
-
-如尚未安裝 Rust，請使用 `rustup` 進行安裝。
+或者不安裝直接執行:
 
 ```bash
-make fmt            # 格式化 + clippy
-make test           # 測試（所有目標）
-make test-verbose   # 測試（所有目標與詳細輸出）
+uvx --from agent-memory-fs amfs --help
+```
+
+> **PyPI 名稱的注意事項.** `amfs` 在 PyPI 上已經被另一個不相干的專案佔用, 所以 Python 發行版的名字是 `agent-memory-fs`, 但裝好之後的指令仍然是 `amfs`. 請不要執行 `uvx amfs`, 那會裝到別人的套件.
+
+macOS, Linux 與 Windows 的預先建置 binary 也附在每個 [release](https://github.com/Mai0313/amfs/releases) 裡.
+
+## 🚀 使用方式
+
+```bash
+amfs add "Wei prefers Traditional Chinese in code reviews" --user-id wei
+
+amfs search "what language does Wei want reviews in?" --user-id wei
+amfs search "code review preferences" --limit 5
+
+amfs list --user-id wei
+amfs get <id>
+amfs update <id> "Wei prefers Traditional Chinese, English for commit messages"
+amfs delete <id>
+```
+
+完整的參數請看 `amfs --help` 或 `amfs <command> --help`.
+
+## 🧭 運作方式
+
+記憶存在本機的檔案裡. 搜尋時會把查詢字串轉成 embedding, 再跟已存的記憶比對, 所以 `search` 找的是意思相近的東西, 而不是剛好有相同字詞的東西.
+
+Embedding 後端是可抽換的. 開發期間使用 Google Gemini 的 embedding model, 完全離線跑本地 model 是目標而非承諾, 細節請看[目前狀態](#-%E7%9B%AE%E5%89%8D%E7%8B%80%E6%85%8B).
+
+## 🛠️ 開發
+
+**系統需求:** Rust 1.95 以上 (專案使用 Edition 2024). toolchain 已經釘在 `rust-toolchain.toml`, `rustup` 會自動裝好對應版本.
+
+```bash
+make fmt            # rustfmt + clippy (先自動修, 再以 deny warnings 檢查)
+make test           # 測試 (所有目標)
+make test-verbose   # 測試 (所有目標與詳細輸出)
 make coverage       # 產生 LCOV 覆蓋率報告
-make build          # 建置（release 模式）
-make build-release  # 發布建置（release 模式）
-make run            # 執行（release 模式）
+make build          # 建置 (debug)
+make release        # 建置 (release, 鎖定依賴)
+make run            # 執行 release binary
 make clean          # 清理建置產物與快取
-make package        # 建立 crate 套件（允許 dirty）
+make package        # 建立 crate 套件 (允許 dirty)
 make help           # 檢視可用目標
 ```
 
-## 📌 版本資訊
+### 測試組織
 
-執行檔會自動顯示動態版本資訊，包含：
+專案遵循 Rust 官方的[測試組織慣例](https://doc.rust-lang.org/book/ch11-03-test-organization.html):
 
-- Git 標籤版本（若無標籤則使用 `Cargo.toml` 版本）
-- 自上次標籤以來的提交數量
-- 簡短提交雜湊值
-- 工作目錄是否有未提交的更改（dirty 標記）
-- 建置時使用的 Rust 與 Cargo 版本
+- **Unit tests**: 放在 `src/` 裡面, 跟被測試的程式碼擺在一起, 用 `#[cfg(test)] mod tests { ... }` 包起來, 可以存取 private items.
+- **Integration tests**: 放在專案根目錄的 [tests/](tests/) 裡, 每個檔案會被編譯成獨立的 crate, 只能使用 public API:
+    - [tests/cli.rs](tests/cli.rs) — 直接驅動編譯出來的 binary, 涵蓋參數解析, `--help` 與 exit code.
+    - [tests/version.rs](tests/version.rs) — `build.rs` 在建置時注入的 version metadata.
 
-輸出範例：
+執行所有測試: `make test` (或 `cargo test --all`).
+
+### 版本資訊
+
+`amfs --version` 會顯示動態的建置資訊: git tag (沒有 tag 時用 `Cargo.toml` 的版本), 自該 tag 以來的 commit 數, 簡短 commit hash, 工作目錄有未提交變更時的 `dirty` 標記, 以及建置時使用的 Rust 與 Cargo 版本. 這些都由 `build.rs` 在建置時嵌入.
 
 ```
-rust_template v0.1.25-2-gf4ae332-dirty
-Built with Rust 1.90.0 and Cargo 1.90.0
+amfs 0.1.25-2-gf4ae332-dirty
 ```
-
-這些版本資訊會在建置時透過 `build.rs` 自動嵌入，並根據你的 git 狀態動態更新。
-
-## 🧪 測試組織
-
-此模板遵循 Rust 官方的[測試組織慣例](https://doc.rust-lang.org/book/ch11-03-test-organization.html)：
-
-- **Unit tests（單元測試）**：放在 `src/` 裡面，跟被測試的程式碼擺在一起 —— [src/lib.rs](src/lib.rs) 用 `#[cfg(test)] mod tests { ... }` 包起來，並依被測 function 拆成一個個 sub-module（`tests::add`、`tests::multiply`、`tests::version_info` ⋯），可以存取 private items。
-- **Integration tests（整合測試）**：放在專案根目錄的 [tests/](tests/) 裡。每個檔案會被編譯成獨立的 crate，只能使用 public API，並依主題拆檔：
-    - [tests/arithmetic.rs](tests/arithmetic.rs) — cross-function composition 與 invariant 驗證。
-    - [tests/version.rs](tests/version.rs) — `build.rs` 在建置時注入的 version metadata。
-
-執行所有測試：`make test`（或 `cargo test --all`）。
 
 ## 🐳 Docker
 
 ```bash
-docker build -f docker/Dockerfile --target prod -t ghcr.io/<owner>/<repo>:latest .
-docker run --rm ghcr.io/<owner>/<repo>:latest
+docker build -f docker/Dockerfile --target prod -t amfs:latest .
+docker run --rm amfs:latest --help
 ```
 
-或使用實際的二進位名稱：
+映像也會推送到 `ghcr.io/mai0313/amfs`.
 
-```bash
-docker build -f docker/Dockerfile --target prod -t rust_template:latest .
-docker run --rm rust_template:latest
-```
+## 🧩 發行建置
 
-## 📦 打包發佈
+`build_release.yml` 會在推送 `v*` tag 時建置各平台的 release binary, 上傳到 GitHub Release, 並發佈到 crates.io, npm 與 PyPI.
 
-```bash
-make package        # 建立 crate 套件（允許 dirty）
-# 或直接使用 cargo：
-cargo package --locked --allow-dirty
-# CARGO_REGISTRY_TOKEN=... cargo publish
-```
+目標平台:
 
-CI 會在建立 `v*` 標籤時自動打包並上傳 `.crate` 產物。若需自動發佈到 crates.io，請在 `build_package.yml` 開啟發佈步驟並設定密鑰。
+- x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu
+- x86_64-apple-darwin, aarch64-apple-darwin
+- x86_64-pc-windows-msvc, aarch64-pc-windows-msvc
 
-## 🧩 跨平台建置
+資產命名:
 
-目前模板預設不含本機跨編譯工具。若需在本機使用 cross 或 zig，請依環境安裝與設定。
+- `amfs-v<version>-<platform>.tar.gz` (所有平台)
+- `amfs-v<version>-<platform>.zip` (Windows 另附)
 
-GitHub Actions `build_release.yml` 會在建立 `v*` 標籤時針對多平台建置釋出二進位，並上傳至 GitHub Release。
-
-目標平台（targets）：
-
-- x86_64-unknown-linux-gnu、x86_64-unknown-linux-musl
-- aarch64-unknown-linux-gnu、aarch64-unknown-linux-musl
-- x86_64-apple-darwin、aarch64-apple-darwin
-- x86_64-pc-windows-msvc、aarch64-pc-windows-msvc
-
-資產命名（assets）：
-
-- `<bin>-v<version>-<target>.tar.gz`（所有平台）
-- `<bin>-v<version>-<target>.zip`（Windows 另附）
+三個 registry 的發行名稱統一宣告在 `build_release.yml` 的開頭.
 
 ## 🔁 CI/CD
 
 ### 主要工作流程
 
-- 測試（`test.yml`）：建置與測試，生成 LCOV 格式覆蓋率報告並上傳 artifact
-- 品質（`code-quality-check.yml`）：rustfmt 檢查 + clippy（拒絕警告）
-- 打包（`build_package.yml`）：標籤 `v*` 觸發打包，可選 crates.io 發佈
-- 映像（`build_image.yml`）：在 `main/master` 與標籤 `v*` 推送至 GHCR
-- 發佈建置（`build_release.yml`）：標籤 `v*` 時建置 Linux 釋出二進位並上傳
+- 測試 (`test.yml`): 建置與測試, 生成 LCOV 覆蓋率報告並上傳 artifact
+- 品質 (`code-quality-check.yml`): pre-commit hooks + rustfmt 檢查 + clippy (拒絕警告)
+- 建置與發行 (`build_release.yml`): 在 `v*` tag 建置多平台 binary, 發佈 GitHub Release 與 crates.io / npm / PyPI
+- 映像 (`build_image.yml`): 在 `main` 與 `v*` tag 推送至 GHCR
 
-### 其他自動化功能
+### 其他自動化
 
-- 自動標籤（`auto_labeler.yml`）：根據分支名稱與檔案變更自動為 PR 添加標籤
-- 程式碼掃描（`code_scan.yml`）：多層次安全性掃描（GitLeaks、Trufflehog 祕密掃描、CodeQL 程式碼分析）
-- 發佈草稿（`release_drafter.yml`）：自動生成 release notes
-- 語義化 PR（`semantic-pull-request.yml`）：檢查 PR 標題格式
-- Dependabot 每週依賴更新
+- 自動標籤 (`auto_labeler.yml`): 依分支名稱與檔案變更自動為 PR 加標籤
+- 程式碼掃描 (`code_scan.yml`): 多層安全掃描 (GitLeaks, Trufflehog, CodeQL)
+- 發佈草稿 (`release_drafter.yml`): 自動生成 release notes
+- 語義化 PR (`semantic-pull-request.yml`): 檢查 PR 標題格式
+- Dependabot 依賴更新
 
 ## 🤝 貢獻
 
-- 歡迎 Issue/PR
+請看 [CONTRIBUTING.md](.github/CONTRIBUTING.md). 簡單說: PR 標題遵循 Conventional Commits, 送出 PR 前先在本機跑過
 
-- PR 標題遵循 Conventional Commits
-
-- 請保持格式化並通過 clippy 檢查
-
-- 每次編輯完畢後，請執行 `cargo build` 來確認編譯是否成功
-
-- 在送出 PR 前，請先本機執行：
-
-    - `cargo fmt --all -- --check`
-    - `cargo clippy --all-targets --all-features -- -D warnings`
-    - `cargo test`
+```bash
+cargo fmt --all -- --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test --all
+```
 
 ## 📄 授權
 
-MIT — 詳見 `LICENSE`。
+MIT, 詳見 `LICENSE`.

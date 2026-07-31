@@ -20,15 +20,14 @@ This directory contains configuration files for developing this project in a ful
         - AI: `github.copilot-chat`, `huggingface-vscode-chat`
         - Quality of life: `indent-rainbow`, `reload`, `default-keys-windows`
     - **Custom mounts**: Local `.gitconfig`, `.ssh`, and `.p10k.zsh` for seamless integration
-    - **Auto-update**: Runs `rustup update && rustup component add clippy rustfmt && cargo fetch` on container start
+    - **Auto-update**: Runs `cargo fetch` on container start
 
 ## Usage
 
 1. **Open this folder in VS Code** (with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) installed).
 2. **Reopen in Container** when prompted, or use the command palette: `Dev Containers: Reopen in Container`.
 3. The environment will be built automatically:
-    - Rust toolchain updated
-    - Clippy and rustfmt installed
+    - Rust toolchain from `rust-toolchain.toml`, with clippy and rustfmt
     - Cargo dependencies pre-fetched
 
 ## Customization
