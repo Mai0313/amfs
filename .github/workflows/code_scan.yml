@@ -30,7 +30,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trufflehog Scanning
-        uses: trufflesecurity/trufflehog@v3.97.6
+        uses: trufflesecurity/trufflehog@v3.97.9
         with:
           extra_args: --results=verified,unknown
 
@@ -46,9 +46,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: CodeQL Initialize
-        uses: github/codeql-action/init@v4.38.1
+        uses: github/codeql-action/init@v4.38.2
         with:
           languages: rust
 
       - name: CodeQL Analyze
-        uses: github/codeql-action/analyze@v4.38.1
+        uses: github/codeql-action/analyze@v4.38.2
