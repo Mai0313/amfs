@@ -66,94 +66,17 @@ Memories live in a local file-backed store; searching embeds the query and compa
 
 Embedding backends are pluggable. Google's Gemini embedding model is the one used during development, and running fully offline against a local model is a goal, not a promise — see [Status](#-status).
 
-## 🛠️ Development
-
-**Requirements:** Rust 1.95 or newer (the project uses Edition 2024). The toolchain is pinned in `rust-toolchain.toml`, so `rustup` picks it up automatically.
-
-```bash
-make fmt            # rustfmt + clippy (auto-fix, then deny warnings)
-make test           # cargo test (all targets)
-make test-verbose   # cargo test (all targets with verbose output)
-make coverage       # generate LCOV coverage report
-make build          # cargo build (debug)
-make release        # cargo build --release --locked
-make run            # run the release binary
-make clean          # clean build artifacts and caches
-make package        # build crate package (allow dirty)
-make help           # list targets
-```
-
-### Testing Layout
-
-This project follows Rust's idiomatic [test organization](https://doc.rust-lang.org/book/ch11-03-test-organization.html):
-
-- **Unit tests** live next to the code they verify inside `src/`, wrapped in a `#[cfg(test)] mod tests { ... }` block. They can exercise private items.
-- **Integration tests** live in the top-level [tests/](tests/) directory. Each file is compiled as its own crate and may only use the public API:
-    - [tests/cli.rs](tests/cli.rs) — drives the compiled binary: argument parsing, `--help`, exit codes.
-    - [tests/version.rs](tests/version.rs) — build-time version metadata plumbed through `build.rs`.
-
-Run everything with `make test` (or `cargo test --all`).
-
-### Version Information
-
-`amfs --version` reports dynamic build metadata: the git tag (or the `Cargo.toml` version when there is no tag), commits since that tag, the short commit hash, a `dirty` marker for uncommitted changes, plus the Rust and Cargo versions used to build it. All of it is embedded at build time by `build.rs`.
-
-```
-amfs 0.1.25-2-gf4ae332-dirty
-```
-
 ## 🐳 Docker
 
 ```bash
-docker build -f docker/Dockerfile --target prod -t amfs:latest .
-docker run --rm amfs:latest --help
+docker run --rm ghcr.io/mai0313/amfs:latest --help
 ```
 
-Images are also published to `ghcr.io/mai0313/amfs`.
+Each release is also published under its own `v<version>` tag.
 
-## 🧩 Release Builds
+## 🛠️ Development
 
-`build_release.yml` builds release binaries on tags matching `v*`, uploads them to the GitHub Release, and publishes to crates.io, npm, and PyPI.
-
-Targets:
-
-- x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu
-- x86_64-apple-darwin, aarch64-apple-darwin
-- x86_64-pc-windows-msvc, aarch64-pc-windows-msvc
-
-Asset naming:
-
-- `amfs-v<version>-<platform>.tar.gz` (all platforms)
-- `amfs-v<version>-<platform>.zip` (Windows additionally)
-
-Distribution names are pinned in `build_release.yml`, not derived from the repository name.
-
-## 🔁 CI/CD Workflows
-
-### Main Workflows
-
-- Tests (`test.yml`): cargo build/test + generate LCOV coverage report and upload artifact
-- Code Quality (`code-quality-check.yml`): pre-commit hooks + rustfmt check + clippy (deny warnings)
-- Build and Release (`build_release.yml`): multi-platform binaries, GitHub Release, crates.io / npm / PyPI publish on tags `v*`
-- Publish Docker Image (`build_image.yml`): push to GHCR on `main` and tags `v*`
-
-### Additional Automation
-
-- Auto Labeler (`auto_labeler.yml`): automatically label PRs based on branch names and file changes
-- Code Scan (`code_scan.yml`): multi-layer security scanning (GitLeaks, Trufflehog secret scanning, CodeQL code analysis)
-- Release Drafter (`release_drafter.yml`): auto-generate release notes
-- Semantic PR (`semantic-pull-request.yml`): enforce PR title format
-- Dependabot dependency updates
-
-## 🤝 Contributing
-
-See [CONTRIBUTING.md](.github/CONTRIBUTING.md). In short: Conventional Commits for PR titles, and before opening a PR run
-
-```bash
-cargo fmt --all -- --check
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test --all
-```
+Contributor setup, tests, code conventions, CI, and the release process live in [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
 ## 📄 License
 

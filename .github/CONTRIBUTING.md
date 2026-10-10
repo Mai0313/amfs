@@ -15,6 +15,7 @@ Thank you for your interest in contributing to this Rust project. This document 
 - [Pull Request Process](#pull-request-process)
 - [Code Review](#code-review)
 - [Coding Standards](#coding-standards)
+- [CI and Releases](#ci-and-releases)
 - [Security Reports](#security-reports)
 - [Licensing](#licensing)
 
@@ -91,10 +92,19 @@ cargo doc --no-deps --open                      # Build and view documentation
 
 Always run `make fmt` and `make test` before opening a pull request.
 
+Build and run the Docker image locally:
+
+```bash
+docker build -f docker/Dockerfile --target prod -t amfs:latest .
+docker run --rm amfs:latest --help
+```
+
 ## Testing
 
-- Unit tests live in `#[cfg(test)] mod tests` blocks within source files.
-- Integration tests live under `tests/`.
+The layout follows the Rust Book's [test organization](https://doc.rust-lang.org/book/ch11-03-test-organization.html):
+
+- Unit tests live in `#[cfg(test)] mod tests` blocks within source files and can exercise private items.
+- Integration tests live under `tests/`. Each file is compiled as its own crate and may only use the public API.
 - Documentation tests are encouraged for public APIs.
 - New behavior must be covered by tests. Bug fixes should include a regression test.
 
@@ -172,9 +182,21 @@ Pull requests are typically merged via **squash merge** to keep history linear.
 - **Documentation**: every public item should carry a `///` doc comment with examples where appropriate
 - **Errors**: prefer `Result<T, E>` and concrete error types (`thiserror`, `anyhow`); avoid `unwrap()` / `expect()` in library code
 - **Unsafe**: any `unsafe` block must be accompanied by a `// SAFETY:` comment justifying the invariants
-- **MSRV**: do not raise the minimum supported Rust version without discussion
+- **MSRV**: `rust-version` in `Cargo.toml`; do not raise the minimum supported Rust version without discussion
 
 Prefer clarity over cleverness, and avoid unrelated refactors in feature or fix pull requests.
+
+## CI and Releases
+
+CI workflows live in [`.github/workflows/`](./workflows/).
+
+Pushing a `v*` tag runs `build_release.yml`: it builds the release binaries for every target in its matrix, uploads them to the GitHub Release, and publishes to crates.io, npm, and PyPI. Distribution names are pinned in `build_release.yml`, not derived from the repository name. `build_image.yml` pushes the Docker image to `ghcr.io/mai0313/amfs` on `main` and on `v*` tags.
+
+`amfs --version` reports build metadata embedded by `build.rs`: the git tag (or the `Cargo.toml` version when there is no tag), commits since that tag, the short commit hash, and a `dirty` marker for uncommitted changes.
+
+```
+amfs 0.1.25-2-gf4ae332-dirty
+```
 
 ## Security Reports
 

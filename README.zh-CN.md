@@ -66,94 +66,17 @@ amfs delete <id>
 
 Embedding 后端是可替换的. 开发期间使用 Google Gemini 的 embedding model, 完全离线跑本地 model 是目标而非承诺, 细节请看[当前状态](#-%E5%BD%93%E5%89%8D%E7%8A%B6%E6%80%81).
 
-## 🛠️ 开发
-
-**系统需求:** Rust 1.95 以上 (项目使用 Edition 2024). toolchain 已经钉在 `rust-toolchain.toml`, `rustup` 会自动装好对应版本.
-
-```bash
-make fmt            # rustfmt + clippy (先自动修, 再以 deny warnings 检查)
-make test           # 测试 (所有目标)
-make test-verbose   # 测试 (所有目标与详细输出)
-make coverage       # 生成 LCOV 覆盖率报告
-make build          # 构建 (debug)
-make release        # 构建 (release, 锁定依赖)
-make run            # 运行 release binary
-make clean          # 清理构建产物与缓存
-make package        # 构建 crate 包 (允许 dirty)
-make help           # 查看可用目标
-```
-
-### 测试组织
-
-项目遵循 Rust 官方的[测试组织惯例](https://doc.rust-lang.org/book/ch11-03-test-organization.html):
-
-- **Unit tests**: 放在 `src/` 里面, 跟被测试的代码摆在一起, 用 `#[cfg(test)] mod tests { ... }` 包起来, 可以访问 private items.
-- **Integration tests**: 放在项目根目录的 [tests/](tests/) 里, 每个文件会被编译成独立的 crate, 只能使用 public API:
-    - [tests/cli.rs](tests/cli.rs) — 直接驱动编译出来的 binary, 涵盖参数解析, `--help` 与 exit code.
-    - [tests/version.rs](tests/version.rs) — `build.rs` 在构建时注入的 version metadata.
-
-运行所有测试: `make test` (或 `cargo test --all`).
-
-### 版本信息
-
-`amfs --version` 会显示动态的构建信息: git tag (没有 tag 时用 `Cargo.toml` 的版本), 自该 tag 以来的 commit 数, 简短 commit hash, 工作目录有未提交变更时的 `dirty` 标记, 以及构建时使用的 Rust 与 Cargo 版本. 这些都由 `build.rs` 在构建时嵌入.
-
-```
-amfs 0.1.25-2-gf4ae332-dirty
-```
-
 ## 🐳 Docker
 
 ```bash
-docker build -f docker/Dockerfile --target prod -t amfs:latest .
-docker run --rm amfs:latest --help
+docker run --rm ghcr.io/mai0313/amfs:latest --help
 ```
 
-镜像也会推送到 `ghcr.io/mai0313/amfs`.
+每个 release 也会以自己的 `v<version>` tag 发布.
 
-## 🧩 发行构建
+## 🛠️ 开发
 
-`build_release.yml` 会在推送 `v*` tag 时构建各平台的 release binary, 上传到 GitHub Release, 并发布到 crates.io, npm 与 PyPI.
-
-目标平台:
-
-- x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu
-- x86_64-apple-darwin, aarch64-apple-darwin
-- x86_64-pc-windows-msvc, aarch64-pc-windows-msvc
-
-资产命名:
-
-- `amfs-v<version>-<platform>.tar.gz` (所有平台)
-- `amfs-v<version>-<platform>.zip` (Windows 另附)
-
-各 registry 的发行名称写死在 `build_release.yml` 里, 不是从 repo 名推导出来的.
-
-## 🔁 CI/CD
-
-### 主要工作流程
-
-- 测试 (`test.yml`): 构建与测试, 生成 LCOV 覆盖率报告并上传 artifact
-- 质量 (`code-quality-check.yml`): pre-commit hooks + rustfmt 检查 + clippy (拒绝警告)
-- 构建与发行 (`build_release.yml`): 在 `v*` tag 构建多平台 binary, 发布 GitHub Release 与 crates.io / npm / PyPI
-- 镜像 (`build_image.yml`): 在 `main` 与 `v*` tag 推送至 GHCR
-
-### 其他自动化
-
-- 自动标签 (`auto_labeler.yml`): 依分支名称与文件变更自动为 PR 加标签
-- 代码扫描 (`code_scan.yml`): 多层安全扫描 (GitLeaks, Trufflehog, CodeQL)
-- 发布草稿 (`release_drafter.yml`): 自动生成 release notes
-- 语义化 PR (`semantic-pull-request.yml`): 检查 PR 标题格式
-- Dependabot 依赖更新
-
-## 🤝 贡献
-
-请看 [CONTRIBUTING.md](.github/CONTRIBUTING.md). 简单说: PR 标题遵循 Conventional Commits, 提交 PR 前先在本机跑过
-
-```bash
-cargo fmt --all -- --check
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test --all
-```
+开发环境配置, 测试, 代码规范, CI 与发行流程都写在 [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
 ## 📄 许可证
 
